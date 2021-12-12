@@ -3,7 +3,6 @@ import { LogicalState, WhereQueryItemFilter } from "../query";
 import {
   getFilterState,
   getLogicalPrefix,
-  normalizeFilterOperator,
   normalizeQueryItem,
 } from "./where-state-parser";
 
@@ -40,7 +39,6 @@ export const buildWhereQuery = <T>(template: WhereQuery<T>) => {
 };
 
 const canSeparate = (currentState: LogicalState, parentState: LogicalState) => {
-  console.log(currentState, parentState);
   if (currentState === LogicalState.NotAnd)
     return parentState === LogicalState.Or;
 

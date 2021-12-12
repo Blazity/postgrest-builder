@@ -1,4 +1,4 @@
-import { buildWhereQuery, buildWhereQueryFromKey } from "./builder";
+import { buildWhereQuery } from "./query/where-builder";
 
 export type WhereQuery<T extends Record<string, any>> = {
   $and?: WhereQuery<T>[];
@@ -63,62 +63,52 @@ export interface UrlParams {
   value: string;
 }
 
-// export class QueryBuilder<T extends Record<string, any>> {
-//   private selectOptions?: SelectOptions<T>;
+export class QueryBuilder<T extends Record<string, any>> {
+  private selectOptions?: SelectOptions<T>;
 
-//   private whereOptions?: WhereRootQuery<T>;
+  private whereOptions?: WhereQuery<T>;
 
-//   constructor(private readonly tableName: string) {}
+  constructor(private readonly tableName: string) {}
 
-//   public select(opts: SelectOptions<T>) {
-//     this.selectOptions = opts;
-//     return this;
-//   }
+  public select(opts: SelectOptions<T>) {
+    this.selectOptions = opts;
+    return this;
+  }
 
-//   public where(opts: WhereRootQuery<T>) {
-//     this.whereOptions = opts;
-//     return this;
-//   }
+  public where(opts: WhereQuery<T>) {
+    this.whereOptions = opts;
+    return this;
+  }
 
-//   public get url() {
-//     const params: UrlParams[] = [];
+  public build() {
+    const res: { select?: string; where?: string } = {};
 
-//     if (this.selectOptions != null) {
-//       const current: UrlParams = { name: "select", value: "" };
-//       const values: string[] = [];
+    if (this.selectOptions != null) {
+      const values: string[] = [];
 
-//       for (const option of this.selectOptions) {
-//         if (typeof option === "object") {
-//           for (const key in option) {
-//             values.push(`${key}::${option[key]}`);
-//           }
-//         } else {
-//           values.push(option as string);
-//         }
-//       }
+      for (const option of this.selectOptions) {
+        if (typeof option === "object") {
+          for (const key in option) {
+            values.push(`${key}::${option[key]}`);
+          }
+        } else {
+          values.push(option as string);
+        }
+      }
 
-//       current.value = values.join(",");
+      res.select = values.join(",");
+    }
 
-//       params.push(current);
-//     }
+    if (this.whereOptions != null) {
+      res.where = buildWhereQuery(this.whereOptions);
+    }
 
-//     if (this.whereOptions != null) {
-//       const query = this.whereOptions;
-//       let resolved = "";
+    return res;
+  }
+}
 
-//       if (query["$or"] != null && query["$and"] == null) {
-//         resolved = buildWhereQueryFromKey("$or", query["$or"]).join(",");
-//       }
-
-//       console.log(buildWhereQuery(this.whereOptions as any, undefined));
-//     }
-
-//     return params;
-//   }
-// }
-
-// export const createQuery = <T extends Record<string, any>>(
-//   tableName: string,
-// ) => {
-//   return new QueryBuilder<T>(tableName);
-// };
+export const createQuery = <T extends Record<string, any>>(
+  tableName: string,
+) => {
+  return new QueryBuilder<T>(tableName);
+};
