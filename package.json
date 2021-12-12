@@ -1,10 +1,11 @@
 {
   "name": "@blazity/postgrest-builder",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Query Builder for Postgrest",
   "license": "MIT",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "homepage": "https://blazity.com/",
   "files": [
     "build/src"
   ],
