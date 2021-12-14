@@ -1,3 +1,5 @@
+import axios, { AxiosResponse } from "axios";
+
 import { buildWhereQuery } from "./query/where-builder";
 
 export type WhereQuery<T extends Record<string, any>> = {
@@ -63,12 +65,23 @@ export interface UrlParams {
   value?: string;
 }
 
+export interface ConnectionOptions {
+  url: string;
+  /**
+   * Headers for every request to Postgrest.
+   */
+  headers?: Record<string, any>;
+}
+
 export class QueryBuilder<T extends Record<string, any>> {
   private selectOptions?: SelectOptions<T>;
 
   private whereOptions?: WhereQuery<T>;
 
-  constructor(private readonly tableName: string) {}
+  constructor(
+    private readonly tableName: string,
+    private readonly connectionOptions: ConnectionOptions,
+  ) {}
 
   public select(opts: SelectOptions<T>) {
     this.selectOptions = opts;
@@ -135,10 +148,22 @@ export class QueryBuilder<T extends Record<string, any>> {
 
     return url;
   }
+
+  public async get<K = T[]>() {
+    return await axios
+      .get<any, AxiosResponse<K>>(
+        `${this.connectionOptions.url}/${this.toString()}`,
+        {
+          headers: this.connectionOptions.headers,
+        },
+      )
+      .then((r) => r.data);
+  }
 }
 
 export const createQuery = <T extends Record<string, any>>(
   tableName: string,
+  connectionOptions: ConnectionOptions,
 ) => {
-  return new QueryBuilder<T>(tableName);
+  return new QueryBuilder<T>(tableName, connectionOptions);
 };
