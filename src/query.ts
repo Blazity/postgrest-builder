@@ -60,7 +60,7 @@ export enum ValueFilterState {
 
 export interface UrlParams {
   name: string;
-  value: string;
+  value?: string;
 }
 
 export class QueryBuilder<T extends Record<string, any>> {
@@ -80,7 +80,7 @@ export class QueryBuilder<T extends Record<string, any>> {
     return this;
   }
 
-  public build() {
+  private build() {
     const res: { select?: string; where?: string } = {};
 
     if (this.selectOptions != null) {
@@ -104,6 +104,36 @@ export class QueryBuilder<T extends Record<string, any>> {
     }
 
     return res;
+  }
+
+  public toString() {
+    const data = this.build();
+    const params: UrlParams[] = [];
+
+    if (data.select != null) {
+      params.push({ name: "select", value: data.select });
+    }
+
+    if (data.where != null) {
+      params.push({ name: data.where });
+    }
+
+    let url = `${this.tableName}`;
+
+    if (params.length !== 0) url += "?";
+
+    for (let i = 0; i < params.length; i++) {
+      const param = params[i];
+      url += param.name;
+      if (param.value != null) {
+        url += `=${param.value}`;
+      }
+      if (i !== params.length - 1) {
+        url += "&";
+      }
+    }
+
+    return url;
   }
 }
 
